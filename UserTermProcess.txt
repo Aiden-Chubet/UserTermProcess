@@ -2,6 +2,7 @@
 $Date = '11.1.23'
 Set-ADUser -Identity $Identity -ChangePasswordAtLogon $True
 Set-ADUser -Identity $Identity -Clear ipphone,mobile,manager
+Set-ADUser -Identity $Identity -Replace @{msExchHideFromAddressLists=$True}
 Disable-ADAccount -Identity $Identity
 Get-ADUser -Identity $Identity | Move-ADObject -TargetPath "OU=Sync to O365,OU=Disabled Accounts,OU=Domain,DC=CMHACC,DC=Local"
 Get-ADUser -Identity $Identity -Properties MemberOf | ForEach-Object {
