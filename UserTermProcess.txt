@@ -1,0 +1,15 @@
+﻿$Identity = 'FLast'
+$Date = '11.1.23'
+Set-ADUser -Identity $Identity -ChangePasswordAtLogon $True
+Set-ADUser -Identity $Identity -Clear ipphone,mobile,manager
+Disable-ADAccount -Identity $Identity
+Get-ADUser -Identity $Identity | Move-ADObject -TargetPath "OU=Sync to O365,OU=Disabled Accounts,OU=Domain,DC=CMHACC,DC=Local"
+Get-ADUser -Identity $Identity -Properties MemberOf | ForEach-Object {
+    $_.MemberOf | Remove-ADGroupMember -Members $_.DistinguishedName -Confirm:$false
+}
+
+$Email = 'FLast@domain.org'
+Import-Module ExchangeOnlineManagement
+Connect-ExchangeOnline
+Set-MailboxAutoReplyConfiguration -Identity $Email -AutoReplyState Enabled -InternalMessage "I am no longer with Company.  Please contact my direct supervisor Company User at CUser@domain.org for assistance." -ExternalMessage "I am no longer with Company.  Please contact my direct supervisor Company User at CUser@domain.org for assistance." -ExternalAudience All
+ 
