@@ -1,14 +1,19 @@
 ﻿$Identity = 'FLast'
 $Date = '11.1.23'
+$Keep = @(
+'CN=Office 365 Standard,OU=Global,OU=Groups,DC=Domain,DC=Local'
+)
 Set-ADUser -Identity $Identity -ChangePasswordAtLogon $True
 Set-ADUser -Identity $Identity -Clear ipphone,mobile,manager
 Set-ADUser -Identity $Identity -Replace @{msExchHideFromAddressLists=$True}
 Disable-ADAccount -Identity $Identity
-Get-ADUser -Identity $Identity | Move-ADObject -TargetPath "OU=Sync to O365,OU=Disabled Accounts,OU=Domain,DC=CMHACC,DC=Local"
-Get-ADUser -Identity $Identity -Properties MemberOf | ForEach-Object {
-    $_.MemberOf | Remove-ADGroupMember -Members $_.DistinguishedName -Confirm:$false
-}
+Get-ADUser -Identity $Identity | Move-ADObject -TargetPath "OU=Sync to O365,OU=Disabled Accounts,OU=Employees,DC=Domain,DC=Local"
 
+$Groups = Get-ADUser -Identity $Identity -Properties MemberOf | Select -Expand MemberOf
+$Groups.Where({$_ -notin ($Keep)}) |
+% { Remove-ADGroupMember -Identity $_ -Members $Identity -Confirm:$False}
+
+#This sets Out of Office Message
 $Email = 'FLast@domain.org'
 Import-Module ExchangeOnlineManagement
 Connect-ExchangeOnline
